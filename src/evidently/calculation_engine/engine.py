@@ -2,25 +2,12 @@ import abc
 import dataclasses
 import functools
 import logging
-from typing import TYPE_CHECKING
-from typing import Dict
-from typing import Generic
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Type
-from typing import TypeVar
-from typing import Union
+from typing import TYPE_CHECKING, Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union
 
 from evidently import ColumnMapping
-from evidently.base_metric import ErrorResult
-from evidently.base_metric import GenericInputData
-from evidently.base_metric import Metric
-from evidently.base_metric import MetricResult
-from evidently.base_metric import TEngineDataType
+from evidently.base_metric import ErrorResult, GenericInputData, Metric, MetricResult, TEngineDataType
 from evidently.calculation_engine.metric_implementation import MetricImplementation
-from evidently.features.generated_features import FeatureResult
-from evidently.features.generated_features import GeneratedFeatures
+from evidently.features.generated_features import FeatureResult, GeneratedFeatures
 from evidently.pydantic_utils import Fingerprint
 from evidently.utils.data_preprocessing import DataDefinition
 
@@ -29,9 +16,6 @@ if TYPE_CHECKING:
 
 TMetricImplementation = TypeVar("TMetricImplementation", bound=MetricImplementation)
 TInputData = TypeVar("TInputData", bound=GenericInputData)
-
-
-# EngineDatasets = Tuple[Optional[TEngineDataType], Optional[TEngineDataType]]
 
 
 @dataclasses.dataclass
@@ -64,6 +48,7 @@ class Engine(Generic[TMetricImplementation, TInputData, TEngineDataType]):
         context.set_features(features)
         self.inject_additional_features(converted_data, features)
         context.data = converted_data
+
         for metric, calculation in self.get_metric_execution_iterator():
             if calculation not in calculations:
                 logging.debug(f"Executing {type(calculation)}...")
@@ -86,7 +71,7 @@ class Engine(Generic[TMetricImplementation, TInputData, TEngineDataType]):
         reference_data: TEngineDataType,
         column_mapping: ColumnMapping,
         categorical_features_cardinality: Optional[int] = None,
-    ):
+    ) -> DataDefinition:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -116,7 +101,7 @@ class Engine(Generic[TMetricImplementation, TInputData, TEngineDataType]):
                 continue
             for feature in required_features:
                 fp = feature.get_fingerprint()
-                if fp in feature:
+                if fp in features:  # Corrected from 'if fp in feature' to 'if fp in features'
                     continue
                 features[fp] = feature
         return list(features.values())
